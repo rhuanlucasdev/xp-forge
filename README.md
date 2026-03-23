@@ -1,41 +1,89 @@
-<<<<<<< HEAD
-# xp-forge
-Modern RuneScape skill planner and progress tracker built with Next.js and TypeScript.
-=======
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🧙‍♂️ XPForge
 
-## Getting Started
+XPForge é uma ferramenta de planejamento e cálculo de progresso inspirada em sistemas de leveling estilo RuneScape.
 
-First, run the development server:
+O objetivo do projeto é fornecer uma forma simples e eficiente de calcular experiência (XP), progresso entre níveis e planejamento de evolução — com foco em qualidade de código e arquitetura escalável.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+---
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 Tech Stack
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- Next.js (App Router)
+- TypeScript
+- TailwindCSS
+- Arquitetura baseada em features
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+---
 
-## Learn More
+## 🧠 Features
 
-To learn more about Next.js, take a look at the following resources:
+### ✅ XP System (Core)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Implementação completa do sistema de experiência:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- 📈 Geração de tabela de XP baseada em fórmula (não hardcoded)
+- 🔒 Validação de domínio (levels e XP)
+- 🧮 Cálculo de XP entre níveis
+- 📊 Progresso dentro do nível atual
+- ⏫ XP restante para próximo nível
+- 🔍 Detecção de level a partir de XP
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 📂 Estrutura
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
->>>>>>> e97bf2c (Initial commit from Create Next App)
+.
+├──src/
+│ ├── features/
+│ │ ├── xp-calculator/
+│ │ │ ├──xp.constants.ts # geração da tabela de XP
+│ │ │ ├──xp.service.ts # regras de negócio
+│ │ │ ├──xp.types.ts # tipagem
+
+
+---
+
+## 🧪 Validação
+
+O core foi testado manualmente garantindo:
+
+- XP crescente (sem inconsistências)
+- Valores corretos até level 99 (~13M XP)
+- Edge cases tratados (níveis inválidos, XP negativo)
+- Progress sempre entre 0 e 1
+
+---
+
+## 🧠 Decisões Técnicas
+
+### ✔️ Tabela de XP gerada via fórmula
+Evita inconsistência e facilita manutenção futura.
+
+### ✔️ Tipagem simples + validação em runtime
+Evita complexidade desnecessária no TypeScript.
+
+### ✔️ Lógica isolada por feature
+Facilita testes, reuso e escalabilidade.
+
+---
+
+## 📌 Próximos passos
+
+- [ ] Interface de cálculo (UI)
+- [ ] Melhorias de UX (inputs controlados, feedback visual)
+- [ ] Persistência de progresso
+- [ ] Skill planner completo
+- [ ] Autenticação
+
+---
+
+## 🎯 Objetivo
+
+Este projeto faz parte do meu portfólio como desenvolvedor, com foco em:
+
+- Arquitetura limpa
+- Código escalável
+- Boas práticas com TypeScript
+- Uso consciente de IA no desenvolvimento
+
+---
