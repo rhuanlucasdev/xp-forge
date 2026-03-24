@@ -38,6 +38,10 @@ export function parseHiscore(text: string): PlayerStats {
 
     const [rank, level, xp] = line.split(",").map(Number);
 
+    if (Number.isNaN(rank) || Number.isNaN(level) || Number.isNaN(xp)) {
+      throw new HiscoreError(`Invalid data for skill: ${skill}`);
+    }
+
     skills[skill] = {
       rank,
       level,
@@ -49,22 +53,34 @@ export function parseHiscore(text: string): PlayerStats {
 }
 
 // -----------------------------
-// Fetch
+// Fetch (via BFF)
 // -----------------------------
 export async function fetchPlayer(username: string): Promise<PlayerStats> {
   if (!username.trim()) {
     throw new HiscoreError("Username is required");
   }
 
-  const res = await fetch(
-    `/api/hiscore?username=${encodeURIComponent(username)}`,
-  );
+  try {
+    const res = await fetch(
+      `/api/player?username=${encodeURIComponent(username)}`,
+    );
 
-  if (!res.ok) {
-    throw new HiscoreError("Player not found");
+    const data = await res.json();
+
+    if (!res.ok) {
+      throw new HiscoreError(data?.error || "Failed to fetch player");
+    }
+
+    const raw = data.raw as string;
+
+    if (!raw) {
+      throw new HiscoreError("Invalid API response");
+    }
+
+    return parseHiscore(raw);
+  } catch (err) {
+    throw new HiscoreError(
+      err instanceof Error ? err.message : "Unknown error",
+    );
   }
-
-  const text = await res.text();
-
-  return parseHiscore(text);
 }
