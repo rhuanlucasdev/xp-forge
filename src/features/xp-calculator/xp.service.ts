@@ -24,9 +24,6 @@ function assertValidLevel(
 }
 
 export function getXpForLevel(level: Level): XP {
-  if (level > 99) {
-    return XP_TABLE[99]; // fallback seguro
-  }
   return XP_TABLE[level];
 }
 
