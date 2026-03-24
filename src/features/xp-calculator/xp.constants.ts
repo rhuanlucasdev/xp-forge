@@ -1,7 +1,8 @@
 import { Level, XP } from "./xp.types";
 
 export const MIN_LEVEL: Level = 1;
-export const MAX_LEVEL: Level = 99;
+export const MAX_LEVEL: Level = 120;
+export const MAX_XP: XP = 200_000_000;
 
 function generateXpTable(): XP[] {
   const table: XP[] = [0, 0]; // index 0 ignorado, level 1 = 0 XP

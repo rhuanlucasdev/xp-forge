@@ -1,5 +1,5 @@
 import { Level, XP, XpProgress } from "./xp.types";
-import { XP_TABLE, MIN_LEVEL, MAX_LEVEL } from "./xp.constants";
+import { XP_TABLE, MIN_LEVEL, MAX_LEVEL, MAX_XP } from "./xp.constants";
 
 export class XpServiceError extends Error {
   constructor(message: string) {
@@ -24,6 +24,9 @@ function assertValidLevel(
 }
 
 export function getXpForLevel(level: Level): XP {
+  if (level > 99) {
+    return XP_TABLE[99]; // fallback seguro
+  }
   return XP_TABLE[level];
 }
 
@@ -48,6 +51,10 @@ export function getXpBetweenLevels(
 export function getCurrentLevelFromXp(totalXp: XP): Level {
   if (totalXp < 0) {
     throw new XpServiceError("XP cannot be negative");
+  }
+
+  if (totalXp < 0 || totalXp > MAX_XP) {
+    throw new XpServiceError("XP out of bounds");
   }
 
   for (let level = MAX_LEVEL; level >= MIN_LEVEL; level--) {
@@ -107,4 +114,3 @@ export function getXpProgressInLevel(totalXp: XP): XpProgress {
     progress,
   };
 }
-

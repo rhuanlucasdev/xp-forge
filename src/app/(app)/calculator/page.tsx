@@ -5,6 +5,7 @@ import { getXpBetweenLevels } from "@/features/xp-calculator/xp.service";
 import { Level } from "@/features/xp-calculator/xp.types";
 import { SKILLS, Skill } from "@/features/xp-calculator/xp.skills";
 import { usePlayerLookup } from "@/features/xp-calculator/usePlayerLookup";
+import { MAX_LEVEL } from "@/features/xp-calculator/xp.constants";
 
 export default function CalculatorPage() {
   // -----------------------------
@@ -32,9 +33,18 @@ export default function CalculatorPage() {
     const skillData = player.skills[selectedSkill];
     if (!skillData) return;
 
-    setCurrentLevel(skillData.level as Level);
-  }, [player, selectedSkill]);
+    const lvl = skillData.level;
 
+    setCurrentLevel(lvl as Level);
+
+    // 🔥 garante target sempre válido
+    setTargetLevel((prev) => {
+      const next = lvl + 1;
+
+      // não ultrapassa limite
+      return next > MAX_LEVEL ? MAX_LEVEL : (next as Level);
+    });
+  }, [player, selectedSkill]);
   // -----------------------------
   // Calculate XP
   // -----------------------------
@@ -120,7 +130,7 @@ export default function CalculatorPage() {
             <input
               type="number"
               min={1}
-              max={99}
+              max={120}
               value={currentLevel}
               onChange={(e) => setCurrentLevel(Number(e.target.value) as Level)}
               className="w-full rounded-md border bg-background px-3 py-2"
@@ -132,7 +142,7 @@ export default function CalculatorPage() {
             <input
               type="number"
               min={1}
-              max={99}
+              max={120}
               value={targetLevel}
               onChange={(e) => setTargetLevel(Number(e.target.value) as Level)}
               className="w-full rounded-md border bg-background px-3 py-2"
