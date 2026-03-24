@@ -40,7 +40,6 @@ Implementação completa do sistema de experiência:
 │ │ │ ├──xp.service.ts # regras de negócio
 │ │ │ ├──xp.types.ts # tipagem
 
-
 ---
 
 ## 🧪 Validação
@@ -57,12 +56,15 @@ O core foi testado manualmente garantindo:
 ## 🧠 Decisões Técnicas
 
 ### ✔️ Tabela de XP gerada via fórmula
+
 Evita inconsistência e facilita manutenção futura.
 
 ### ✔️ Tipagem simples + validação em runtime
+
 Evita complexidade desnecessária no TypeScript.
 
 ### ✔️ Lógica isolada por feature
+
 Facilita testes, reuso e escalabilidade.
 
 ---

@@ -23,7 +23,7 @@ function assertValidLevel(
   }
 }
 
-function getXpForLevel(level: Level): XP {
+export function getXpForLevel(level: Level): XP {
   return XP_TABLE[level];
 }
 
@@ -107,3 +107,4 @@ export function getXpProgressInLevel(totalXp: XP): XpProgress {
     progress,
   };
 }
+
