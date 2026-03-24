@@ -1,9 +1,10 @@
-import { XP_METHODS } from "../xp.methods";
-import {
-  calculateActionsNeeded,
-  calculateXpPerHour,
-} from "../xp.methods.service";
+"use client";
+
+import { useMemo, useState } from "react";
+import { TRAINING_METHODS } from "../xp.methods";
 import { Skill } from "../xp.skills";
+import { calculateActionsNeeded } from "../xp.methods.service";
+import { MethodsFilters } from "./MethodsFilters";
 
 type Props = {
   skill: Skill;
@@ -11,95 +12,105 @@ type Props = {
 };
 
 export function MethodsTable({ skill, xpNeeded }: Props) {
-  const methods = XP_METHODS.filter((m) => m.skill === skill)
-    .map((method) => {
-      const actions = xpNeeded
-        ? calculateActionsNeeded(xpNeeded, method.xpPerAction)
-        : 0;
+  const [showAfkOnly, setShowAfkOnly] = useState(false);
+  const [intensity, setIntensity] = useState<"all" | "low" | "medium" | "high">(
+    "all",
+  );
 
-      const xpPerHour = calculateXpPerHour(
-        method.xpPerAction,
-        method.actionsPerHour,
-      );
+  const methods = TRAINING_METHODS[skill] || [];
 
-      return {
-        ...method,
-        actions,
-        xpPerHour,
-      };
-    })
-    // 🔥 ordena por melhor método
-    .sort((a, b) => a.actions - b.actions);
+  // -----------------------------
+  // Filtering + Sorting
+  // -----------------------------
+  const processedMethods = useMemo(() => {
+    let filtered = [...methods];
 
-  if (!xpNeeded || xpNeeded <= 0) {
-    return (
-      <p className="text-sm text-muted-foreground text-center">
-        Enter valid levels to see training methods
-      </p>
-    );
-  }
+    // AFK filter
+    if (showAfkOnly) {
+      filtered = filtered.filter((m) => m.afk);
+    }
 
+    // intensity filter
+    if (intensity !== "all") {
+      filtered = filtered.filter((m) => m.intensity === intensity);
+    }
+
+    // sort by XP/hour DESC
+    filtered.sort((a, b) => b.xpPerHour - a.xpPerHour);
+
+    return filtered;
+  }, [methods, showAfkOnly, intensity]);
+
+  // -----------------------------
+  // UI
+  // -----------------------------
   return (
-    <div className="rounded-xl border overflow-hidden">
-      <table className="w-full text-sm">
-        {/* HEADER */}
-        <thead className="bg-muted/50 text-xs uppercase tracking-wide text-muted-foreground">
-          <tr>
-            <th className="p-3 text-left">Method</th>
-            <th className="p-3 text-right">XP/action</th>
-            <th className="p-3 text-right">XP/hour</th>
-            <th className="p-3 text-right">Actions</th>
-          </tr>
-        </thead>
+    <div className="space-y-4">
+      {/* Filters */}
+      <MethodsFilters
+        showAfkOnly={showAfkOnly}
+        setShowAfkOnly={setShowAfkOnly}
+        intensity={intensity}
+        setIntensity={setIntensity}
+      />
 
-        {/* BODY */}
-        <tbody>
-          {methods.map((method, index) => {
-            const isBest = index === 0;
+      {/* Table */}
+      <div className="rounded-xl border overflow-hidden">
+        <table className="w-full text-sm">
+          <thead className="bg-muted text-muted-foreground">
+            <tr className="text-left">
+              <th className="p-3">Method</th>
+              <th className="p-3">XP/action</th>
+              <th className="p-3">XP/hour</th>
+              <th className="p-3">Actions</th>
+            </tr>
+          </thead>
 
-            return (
-              <tr
-                key={method.id}
-                className={`
-                  border-t transition
-                  ${isBest ? "bg-primary/10" : "hover:bg-muted/40"}
-                `}
-              >
-                {/* Method */}
-                <td className="p-3 flex items-center gap-2">
-                  {/* future icon */}
-                  <div className="w-6 h-6 rounded bg-muted flex items-center justify-center text-xs">
-                    ⚔️
-                  </div>
+          <tbody>
+            {processedMethods.map((method, index) => {
+              const actions =
+                xpNeeded !== null
+                  ? calculateActionsNeeded(xpNeeded, method)
+                  : null;
 
-                  <span className="font-medium">{method.name}</span>
+              const isBest = index === 0;
 
-                  {isBest && (
-                    <span className="ml-2 text-xs px-2 py-0.5 rounded bg-primary text-primary-foreground">
-                      Best
-                    </span>
-                  )}
-                </td>
+              return (
+                <tr
+                  key={method.id}
+                  className="border-t hover:bg-muted/50 transition"
+                >
+                  <td className="p-3 flex items-center gap-2">
+                    <span>{method.name}</span>
 
-                {/* XP per action */}
-                <td className="p-3 text-right">
-                  {method.xpPerAction.toLocaleString()}
-                </td>
+                    {isBest && (
+                      <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded">
+                        Best
+                      </span>
+                    )}
 
-                {/* XP/hour */}
-                <td className="p-3 text-right text-green-500 font-medium">
-                  {method.xpPerHour.toLocaleString()}
-                </td>
+                    {method.afk && (
+                      <span className="text-xs bg-muted px-2 py-0.5 rounded">
+                        AFK
+                      </span>
+                    )}
+                  </td>
 
-                {/* Actions */}
-                <td className="p-3 text-right font-semibold">
-                  {method.actions.toLocaleString()}
-                </td>
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+                  <td className="p-3">{method.xp}</td>
+
+                  <td className="p-3 text-green-600 font-medium">
+                    {method.xpPerHour.toLocaleString()}
+                  </td>
+
+                  <td className="p-3 font-semibold">
+                    {actions?.toLocaleString() ?? "-"}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

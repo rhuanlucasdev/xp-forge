@@ -2,10 +2,12 @@ import { XpMethod } from "./xp.methods.types";
 
 export function calculateActionsNeeded(
   xpNeeded: number,
-  xpPerAction: number,
+  method: XpMethod,
 ): number {
   if (xpNeeded <= 0) return 0;
-  return Math.ceil(xpNeeded / xpPerAction);
+  if (!method.xp || method.xp <= 0) return 0;
+
+  return Math.ceil(xpNeeded / method.xp);
 }
 
 export function calculateXpPerHour(
