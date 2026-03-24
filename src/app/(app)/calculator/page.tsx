@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import {
   getXpBetweenLevels,
   getXpFromCurrentXp,
+  getXpProgressInLevel,
+  getXpProgressToTarget,
 } from "@/features/xp-calculator/xp.service";
 import { Level } from "@/features/xp-calculator/xp.types";
 import { SKILLS, Skill } from "@/features/xp-calculator/xp.skills";
@@ -11,15 +13,9 @@ import { usePlayerLookup } from "@/features/xp-calculator/usePlayerLookup";
 import { MAX_LEVEL } from "@/features/xp-calculator/xp.constants";
 
 export default function CalculatorPage() {
-  // -----------------------------
-  // Player lookup
-  // -----------------------------
   const { username, setUsername, player, loading, error, lookup } =
     usePlayerLookup();
 
-  // -----------------------------
-  // Calculator state
-  // -----------------------------
   const [selectedSkill, setSelectedSkill] = useState<Skill>("attack");
 
   const [currentLevel, setCurrentLevel] = useState<Level>(1);
@@ -27,8 +23,15 @@ export default function CalculatorPage() {
 
   const [xpNeeded, setXpNeeded] = useState<number | null>(null);
 
+  // 🔥 NOVO
+  const [progress, setProgress] = useState<{
+    current: number;
+    required: number;
+    progress: number;
+  } | null>(null);
+
   // -----------------------------
-  // Sync player → calculator
+  // Sync player
   // -----------------------------
   useEffect(() => {
     if (!player) return;
@@ -40,7 +43,6 @@ export default function CalculatorPage() {
 
     setCurrentLevel(lvl as Level);
 
-    // 🔥 sempre define target como próximo level válido
     setTargetLevel(() => {
       const next = lvl + 1;
       return next > MAX_LEVEL ? MAX_LEVEL : (next as Level);
@@ -48,30 +50,34 @@ export default function CalculatorPage() {
   }, [player, selectedSkill]);
 
   // -----------------------------
-  // Calculate XP (SMART)
+  // Calculate XP + Progress
   // -----------------------------
   useEffect(() => {
     try {
       if (targetLevel <= currentLevel) {
         setXpNeeded(null);
+        setProgress(null);
         return;
       }
 
       let xp: number;
 
-      // se tem player → usa XP REAL
       if (player && selectedSkill) {
         const playerXp = player.skills[selectedSkill].xp;
 
         xp = getXpFromCurrentXp(playerXp, targetLevel);
+
+        // 🔥 progresso REAL
+        setProgress(getXpProgressToTarget(playerXp, currentLevel, targetLevel));
       } else {
-        // fallback manual
         xp = getXpBetweenLevels(currentLevel, targetLevel);
+        setProgress(null);
       }
 
       setXpNeeded(xp);
     } catch {
       setXpNeeded(null);
+      setProgress(null);
     }
   }, [currentLevel, targetLevel, player, selectedSkill]);
 
@@ -89,7 +95,7 @@ export default function CalculatorPage() {
           </p>
         </div>
 
-        {/* Player lookup */}
+        {/* Player */}
         <div className="space-y-2">
           <label className="text-sm font-medium">Player</label>
 
@@ -127,12 +133,6 @@ export default function CalculatorPage() {
               </option>
             ))}
           </select>
-
-          {player && (
-            <p className="text-xs text-muted-foreground">
-              Using real XP from player
-            </p>
-          )}
         </div>
 
         {/* Levels */}
@@ -161,6 +161,28 @@ export default function CalculatorPage() {
             />
           </div>
         </div>
+
+        {/* 🔥 PROGRESS SECTION */}
+        {progress && (
+          <div className="space-y-2">
+            <div className="flex justify-between text-xs text-muted-foreground">
+              <span>{progress.current.toLocaleString()} XP</span>
+              <span>{progress.required.toLocaleString()} XP</span>
+            </div>
+
+            {/* Progress bar */}
+            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+              <div
+                className="h-full bg-primary transition-all"
+                style={{ width: `${progress.progress * 100}%` }}
+              />
+            </div>
+
+            <p className="text-center text-xs text-muted-foreground">
+              {(progress.progress * 100).toFixed(2)}% to next level
+            </p>
+          </div>
+        )}
 
         {/* Result */}
         <div className="rounded-lg bg-muted p-4 text-center">

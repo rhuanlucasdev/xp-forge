@@ -131,3 +131,23 @@ export function getXpProgressInLevel(totalXp: XP): XpProgress {
     progress,
   };
 }
+
+export function getXpProgressToTarget(
+  currentXp: XP,
+  startLevel: Level,
+  targetLevel: Level,
+) {
+  const startXp = getXpForLevel(startLevel);
+  const targetXp = getXpForLevel(targetLevel);
+
+  const total = targetXp - startXp;
+  const done = currentXp - startXp;
+
+  const progress = Math.min(Math.max(done / total, 0), 1);
+
+  return {
+    current: done,
+    required: total,
+    progress,
+  };
+}
