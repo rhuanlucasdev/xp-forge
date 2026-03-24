@@ -4,18 +4,24 @@ import { useEffect, useState } from "react";
 import {
   getXpBetweenLevels,
   getXpFromCurrentXp,
-  getXpProgressInLevel,
   getXpProgressToTarget,
 } from "@/features/xp-calculator/xp.service";
 import { Level } from "@/features/xp-calculator/xp.types";
 import { SKILLS, Skill } from "@/features/xp-calculator/xp.skills";
 import { usePlayerLookup } from "@/features/xp-calculator/usePlayerLookup";
 import { MAX_LEVEL } from "@/features/xp-calculator/xp.constants";
+import { MethodsTable } from "@/features/xp-calculator/components/MethodsTable";
 
 export default function CalculatorPage() {
+  // -----------------------------
+  // Player lookup
+  // -----------------------------
   const { username, setUsername, player, loading, error, lookup } =
     usePlayerLookup();
 
+  // -----------------------------
+  // State
+  // -----------------------------
   const [selectedSkill, setSelectedSkill] = useState<Skill>("attack");
 
   const [currentLevel, setCurrentLevel] = useState<Level>(1);
@@ -23,7 +29,6 @@ export default function CalculatorPage() {
 
   const [xpNeeded, setXpNeeded] = useState<number | null>(null);
 
-  // 🔥 NOVO
   const [progress, setProgress] = useState<{
     current: number;
     required: number;
@@ -31,7 +36,7 @@ export default function CalculatorPage() {
   } | null>(null);
 
   // -----------------------------
-  // Sync player
+  // Sync player → calculator
   // -----------------------------
   useEffect(() => {
     if (!player) return;
@@ -62,12 +67,11 @@ export default function CalculatorPage() {
 
       let xp: number;
 
-      if (player && selectedSkill) {
+      if (player) {
         const playerXp = player.skills[selectedSkill].xp;
 
         xp = getXpFromCurrentXp(playerXp, targetLevel);
 
-        // 🔥 progresso REAL
         setProgress(getXpProgressToTarget(playerXp, currentLevel, targetLevel));
       } else {
         xp = getXpBetweenLevels(currentLevel, targetLevel);
@@ -162,7 +166,7 @@ export default function CalculatorPage() {
           </div>
         </div>
 
-        {/* 🔥 PROGRESS SECTION */}
+        {/* Progress */}
         {progress && (
           <div className="space-y-2">
             <div className="flex justify-between text-xs text-muted-foreground">
@@ -170,7 +174,6 @@ export default function CalculatorPage() {
               <span>{progress.required.toLocaleString()} XP</span>
             </div>
 
-            {/* Progress bar */}
             <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
               <div
                 className="h-full bg-primary transition-all"
@@ -194,6 +197,9 @@ export default function CalculatorPage() {
             <p className="text-sm text-muted-foreground">Enter valid levels</p>
           )}
         </div>
+
+        {/* 🔥 METHODS TABLE (substitui select) */}
+        <MethodsTable skill={selectedSkill} xpNeeded={xpNeeded} />
       </div>
     </main>
   );
