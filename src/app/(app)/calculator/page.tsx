@@ -45,13 +45,18 @@ export default function CalculatorPage() {
     if (!skillData) return;
 
     const lvl = skillData.level;
+    const xp = skillData.xp;
 
     setCurrentLevel(lvl as Level);
 
+    // target = current + 1 (safe)
     setTargetLevel(() => {
       const next = lvl + 1;
       return next > MAX_LEVEL ? MAX_LEVEL : (next as Level);
     });
+
+    // opcional: já calcula progresso inicial aqui (UX melhor)
+    setProgress(getXpProgressToTarget(xp, lvl as Level, (lvl + 1) as Level));
   }, [player, selectedSkill]);
 
   // -----------------------------
@@ -70,10 +75,12 @@ export default function CalculatorPage() {
       if (player) {
         const playerXp = player.skills[selectedSkill].xp;
 
+        // cálculo REAL baseado no XP atual
         xp = getXpFromCurrentXp(playerXp, targetLevel);
 
         setProgress(getXpProgressToTarget(playerXp, currentLevel, targetLevel));
       } else {
+        // fallback sem player
         xp = getXpBetweenLevels(currentLevel, targetLevel);
         setProgress(null);
       }
@@ -89,117 +96,131 @@ export default function CalculatorPage() {
   // UI
   // -----------------------------
   return (
-    <main className="flex items-center justify-center min-h-screen px-4">
-      <div className="w-full max-w-md space-y-6 rounded-2xl border bg-card p-6 shadow-lg">
-        {/* Title */}
-        <div>
-          <h1 className="text-xl font-semibold">XP Calculator</h1>
-          <p className="text-sm text-muted-foreground">
-            Calculate XP between levels
-          </p>
-        </div>
+    <main className="max-w-6xl mx-auto px-6 py-10 space-y-10">
+      {/* Header */}
+      <div className="space-y-1">
+        <h1 className="text-3xl font-semibold tracking-tight">XP Calculator</h1>
+        <p className="text-muted-foreground">
+          Calculate XP, progress and training efficiency
+        </p>
+      </div>
 
-        {/* Player */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Player</label>
-
-          <div className="flex gap-2">
-            <input
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              placeholder="Enter username"
-              className="flex-1 rounded-md border bg-background px-3 py-2"
-            />
-
-            <button
-              onClick={lookup}
-              className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
-            >
-              {loading ? "..." : "Lookup"}
-            </button>
-          </div>
-
-          {error && <p className="text-sm text-red-500">{error}</p>}
-        </div>
-
-        {/* Skill */}
-        <div className="space-y-2">
-          <label className="text-sm font-medium">Skill</label>
-
-          <select
-            value={selectedSkill}
-            onChange={(e) => setSelectedSkill(e.target.value as Skill)}
-            className="w-full rounded-md border bg-background px-3 py-2"
-          >
-            {SKILLS.map((skill) => (
-              <option key={skill} value={skill}>
-                {skill}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        {/* Levels */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="text-sm font-medium">Current level</label>
-            <input
-              type="number"
-              min={1}
-              max={120}
-              value={currentLevel}
-              onChange={(e) => setCurrentLevel(Number(e.target.value) as Level)}
-              className="w-full rounded-md border bg-background px-3 py-2"
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium">Target level</label>
-            <input
-              type="number"
-              min={1}
-              max={120}
-              value={targetLevel}
-              onChange={(e) => setTargetLevel(Number(e.target.value) as Level)}
-              className="w-full rounded-md border bg-background px-3 py-2"
-            />
-          </div>
-        </div>
-
-        {/* Progress */}
-        {progress && (
+      {/* Grid principal */}
+      <div className="grid lg:grid-cols-2 gap-8">
+        {/* LEFT COLUMN */}
+        <div className="space-y-6">
+          {/* Player */}
           <div className="space-y-2">
-            <div className="flex justify-between text-xs text-muted-foreground">
-              <span>{progress.current.toLocaleString()} XP</span>
-              <span>{progress.required.toLocaleString()} XP</span>
+            <label className="text-sm font-medium">Player</label>
+
+            <div className="flex gap-2">
+              <input
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                placeholder="Enter username"
+                className="flex-1 rounded-md border bg-background px-3 py-2"
+              />
+
+              <button
+                onClick={lookup}
+                className="rounded-md bg-primary px-4 py-2 text-primary-foreground"
+              >
+                {loading ? "..." : "Lookup"}
+              </button>
             </div>
 
-            <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
-              <div
-                className="h-full bg-primary transition-all"
-                style={{ width: `${progress.progress * 100}%` }}
+            {error && <p className="text-sm text-red-500">{error}</p>}
+          </div>
+
+          {/* Skill */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium">Skill</label>
+
+            <select
+              value={selectedSkill}
+              onChange={(e) => setSelectedSkill(e.target.value as Skill)}
+              className="w-full rounded-md border bg-background px-3 py-2"
+            >
+              {SKILLS.map((skill) => (
+                <option key={skill} value={skill}>
+                  {skill}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Levels */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium">Current level</label>
+              <input
+                type="number"
+                min={1}
+                max={120}
+                value={currentLevel}
+                onChange={(e) =>
+                  setCurrentLevel(Number(e.target.value) as Level)
+                }
+                className="w-full rounded-md border bg-background px-3 py-2"
               />
             </div>
 
-            <p className="text-center text-xs text-muted-foreground">
-              {(progress.progress * 100).toFixed(2)}% to next level
-            </p>
+            <div>
+              <label className="text-sm font-medium">Target level</label>
+              <input
+                type="number"
+                min={1}
+                max={120}
+                value={targetLevel}
+                onChange={(e) =>
+                  setTargetLevel(Number(e.target.value) as Level)
+                }
+                className="w-full rounded-md border bg-background px-3 py-2"
+              />
+            </div>
           </div>
-        )}
 
-        {/* Result */}
-        <div className="rounded-lg bg-muted p-4 text-center">
-          {xpNeeded !== null ? (
-            <p className="text-lg font-semibold">
-              {xpNeeded.toLocaleString()} XP needed
-            </p>
-          ) : (
-            <p className="text-sm text-muted-foreground">Enter valid levels</p>
+          {/* Progress */}
+          {progress && (
+            <div className="space-y-2">
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{progress.current.toLocaleString()} XP</span>
+                <span>{progress.required.toLocaleString()} XP</span>
+              </div>
+
+              <div className="h-2 w-full rounded-full bg-muted overflow-hidden">
+                <div
+                  className="h-full bg-primary transition-all"
+                  style={{ width: `${progress.progress * 100}%` }}
+                />
+              </div>
+
+              <p className="text-center text-xs text-muted-foreground">
+                {(progress.progress * 100).toFixed(2)}% to next level
+              </p>
+            </div>
           )}
+
+          {/* Result */}
+          <div className="rounded-lg bg-muted p-4 text-center">
+            {xpNeeded !== null ? (
+              <p className="text-xl font-semibold">
+                {xpNeeded.toLocaleString()} XP needed
+              </p>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                Enter valid levels
+              </p>
+            )}
+          </div>
         </div>
 
-        {/* 🔥 METHODS TABLE (substitui select) */}
-        <MethodsTable skill={selectedSkill} xpNeeded={xpNeeded} />
+        {/* RIGHT COLUMN */}
+        <div className="space-y-4">
+          <h2 className="text-lg font-medium">Training Methods</h2>
+
+          <MethodsTable skill={selectedSkill} xpNeeded={xpNeeded} />
+        </div>
       </div>
     </main>
   );

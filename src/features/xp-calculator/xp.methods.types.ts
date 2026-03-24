@@ -7,6 +7,8 @@ export type XpMethod = {
   name: string;
   xpPerAction: number;
 
+  actionsPerHour: number;
+
   // futuro
   icon?: string;
 };
