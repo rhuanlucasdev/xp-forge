@@ -3,32 +3,15 @@
 import { useState } from "react";
 import { fetchPlayer, PlayerStats } from "./hiscore.service";
 
-type UsePlayerLookupReturn = {
-  username: string;
-  setUsername: (value: string) => void;
-
-  player: PlayerStats | null;
-  isLoading: boolean;
-  error: string | null;
-
-  lookup: () => Promise<void>;
-};
-
-export function usePlayerLookup(): UsePlayerLookupReturn {
+export function usePlayerLookup() {
   const [username, setUsername] = useState("");
   const [player, setPlayer] = useState<PlayerStats | null>(null);
-
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   async function lookup() {
-    if (!username.trim()) {
-      setError("Enter a username");
-      return;
-    }
-
     try {
-      setIsLoading(true);
+      setLoading(true);
       setError(null);
 
       const data = await fetchPlayer(username);
@@ -36,10 +19,10 @@ export function usePlayerLookup(): UsePlayerLookupReturn {
       setPlayer(data);
     } catch (err) {
       console.error("LOOKUP ERROR:", err);
-      setError("Player not found or API error");
+      setError(err instanceof Error ? err.message : "Unknown error");
       setPlayer(null);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   }
 
@@ -47,7 +30,7 @@ export function usePlayerLookup(): UsePlayerLookupReturn {
     username,
     setUsername,
     player,
-    isLoading,
+    loading,
     error,
     lookup,
   };
