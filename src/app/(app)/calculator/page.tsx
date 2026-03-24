@@ -1,7 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getXpBetweenLevels } from "@/features/xp-calculator/xp.service";
+import {
+  getXpBetweenLevels,
+  getXpFromCurrentXp,
+} from "@/features/xp-calculator/xp.service";
 import { Level } from "@/features/xp-calculator/xp.types";
 import { SKILLS, Skill } from "@/features/xp-calculator/xp.skills";
 import { usePlayerLookup } from "@/features/xp-calculator/usePlayerLookup";
@@ -37,16 +40,15 @@ export default function CalculatorPage() {
 
     setCurrentLevel(lvl as Level);
 
-    // 🔥 garante target sempre válido
-    setTargetLevel((prev) => {
+    // 🔥 sempre define target como próximo level válido
+    setTargetLevel(() => {
       const next = lvl + 1;
-
-      // não ultrapassa limite
       return next > MAX_LEVEL ? MAX_LEVEL : (next as Level);
     });
   }, [player, selectedSkill]);
+
   // -----------------------------
-  // Calculate XP
+  // Calculate XP (SMART)
   // -----------------------------
   useEffect(() => {
     try {
@@ -55,13 +57,23 @@ export default function CalculatorPage() {
         return;
       }
 
-      const xp = getXpBetweenLevels(currentLevel, targetLevel);
+      let xp: number;
+
+      // se tem player → usa XP REAL
+      if (player && selectedSkill) {
+        const playerXp = player.skills[selectedSkill].xp;
+
+        xp = getXpFromCurrentXp(playerXp, targetLevel);
+      } else {
+        // fallback manual
+        xp = getXpBetweenLevels(currentLevel, targetLevel);
+      }
 
       setXpNeeded(xp);
     } catch {
       setXpNeeded(null);
     }
-  }, [currentLevel, targetLevel]);
+  }, [currentLevel, targetLevel, player, selectedSkill]);
 
   // -----------------------------
   // UI
@@ -118,7 +130,7 @@ export default function CalculatorPage() {
 
           {player && (
             <p className="text-xs text-muted-foreground">
-              Loaded {selectedSkill} data
+              Using real XP from player
             </p>
           )}
         </div>

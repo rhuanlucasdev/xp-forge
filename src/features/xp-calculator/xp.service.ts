@@ -1,5 +1,5 @@
 import { Level, XP, XpProgress } from "./xp.types";
-import { XP_TABLE, MIN_LEVEL, MAX_LEVEL, MAX_XP } from "./xp.constants";
+import { XP_TABLE, MIN_LEVEL, MAX_LEVEL } from "./xp.constants";
 
 export class XpServiceError extends Error {
   constructor(message: string) {
@@ -23,12 +23,12 @@ function assertValidLevel(
   }
 }
 
-export function getXpForLevel(level: Level): XP {
+function getXpForLevel(level: Level): XP {
   return XP_TABLE[level];
 }
 
 // -----------------------------
-// Core functions
+// Core functions (LEVEL BASED)
 // -----------------------------
 
 export function getXpBetweenLevels(
@@ -45,13 +45,33 @@ export function getXpBetweenLevels(
   return getXpForLevel(targetLevel) - getXpForLevel(currentLevel);
 }
 
-export function getCurrentLevelFromXp(totalXp: XP): Level {
-  if (totalXp < 0) {
+// -----------------------------
+// Core functions (XP BASED - REAL PLAYER)
+// -----------------------------
+
+export function getXpFromCurrentXp(currentXp: XP, targetLevel: Level): XP {
+  if (currentXp < 0) {
     throw new XpServiceError("XP cannot be negative");
   }
 
-  if (totalXp < 0 || totalXp > MAX_XP) {
-    throw new XpServiceError("XP out of bounds");
+  assertValidLevel(targetLevel, "Target level");
+
+  const targetXp = getXpForLevel(targetLevel);
+
+  if (currentXp >= targetXp) {
+    return 0;
+  }
+
+  return targetXp - currentXp;
+}
+
+// -----------------------------
+// Utilities
+// -----------------------------
+
+export function getCurrentLevelFromXp(totalXp: XP): Level {
+  if (totalXp < 0) {
+    throw new XpServiceError("XP cannot be negative");
   }
 
   for (let level = MAX_LEVEL; level >= MIN_LEVEL; level--) {
